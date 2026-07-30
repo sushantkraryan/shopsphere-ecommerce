@@ -3,6 +3,9 @@ package com.shopsphere.backend.service;
 import com.shopsphere.backend.dto.ProductDTO;
 import com.shopsphere.backend.entity.Category;
 import com.shopsphere.backend.entity.Product;
+import com.shopsphere.backend.exception.CategoryNotFoundException;
+import com.shopsphere.backend.exception.DuplicateSkuException;
+import com.shopsphere.backend.exception.ProductNotFoundException;
 import com.shopsphere.backend.mapper.ProductMapper;
 import com.shopsphere.backend.repository.CategoryRepository;
 import com.shopsphere.backend.repository.ProductRepository;
@@ -34,17 +37,17 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         return productMapper.toDTO(product);
     }
 
     @Transactional
     public ProductDTO createProduct(ProductDTO dto) {
         Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException(("Category not found with idd: " + dto.getCategoryId())));
+                .orElseThrow(() -> new CategoryNotFoundException((dto.getCategoryId())));
 
         if (productRepository.existsBySku(dto.getSku())) {
-            throw new RuntimeException("SKU already exists: " + dto.getSku());
+            throw new DuplicateSkuException(dto.getSku());
         }
 
         Product product = Product.builder()
