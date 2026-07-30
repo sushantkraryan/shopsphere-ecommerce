@@ -2,6 +2,7 @@ package com.shopsphere.backend.controller;
 
 import com.shopsphere.backend.dto.ProductDTO;
 import com.shopsphere.backend.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +34,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO dto) {
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO dto) {
         ProductDTO created = productService.createProduct(dto);
         URI location = URI.create("/api/products/" + created.getId());
         return ResponseEntity.created(location).body(created);
