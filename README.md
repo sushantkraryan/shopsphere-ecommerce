@@ -72,37 +72,26 @@ This project is being built module by module, with a clean, readable Git history
 
 ## 🏛️ Architecture
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     HTTP Request                          │
-└───────────────────────────┬────────────────────────────────┘
-                            ▼
-                 ┌─────────────────────┐
-                 │  Security Filter     │  ← Authentication /
-                 │  Chain                │    Authorization gate
-                 └──────────┬──────────┘
-                            ▼
-                 ┌─────────────────────┐
-                 │    Controller        │  ← HTTP concerns only
-                 │  (@RestController)   │    (status codes, routing)
-                 └──────────┬──────────┘
-                            ▼
-                 ┌─────────────────────┐
-                 │      Service          │  ← Business logic,
-                 │   (@Transactional)    │    validation rules
-                 └──────────┬──────────┘
-                            ▼
-                 ┌─────────────────────┐
-                 │     Repository        │  ← Spring Data JPA,
-                 │   (JpaRepository)     │    zero boilerplate SQL
-                 └──────────┬──────────┘
-                            ▼
-                     ┌─────────────┐
-                     │   MySQL      │
-                     └─────────────┘
+```mermaid
+flowchart TD
+    A[🌐 HTTP Request] --> B["🛡️ Security Filter Chain<br/><i>Authentication / Authorization gate</i>"]
+    B --> C["🎯 Controller<br/><b>@RestController</b><br/><i>HTTP concerns only — routing, status codes</i>"]
+    C --> D["⚙️ Service<br/><b>@Transactional</b><br/><i>Business logic, validation rules</i>"]
+    D --> E["🗄️ Repository<br/><b>JpaRepository</b><br/><i>Zero boilerplate SQL</i>"]
+    E --> F[("🐬 MySQL")]
 
-     Errors escape upward → caught centrally by
-              GlobalExceptionHandler
+    C -.errors escape upward.-> G["🚨 GlobalExceptionHandler<br/><i>@RestControllerAdvice</i>"]
+    D -.errors escape upward.-> G
+    E -.errors escape upward.-> G
+    G -.consistent JSON error.-> A
+
+    style A fill:#4A90D9,color:#fff
+    style B fill:#E67E22,color:#fff
+    style C fill:#27AE60,color:#fff
+    style D fill:#8E44AD,color:#fff
+    style E fill:#2980B9,color:#fff
+    style F fill:#00758F,color:#fff
+    style G fill:#C0392B,color:#fff
 ```
 
 **Why this shape?** Each layer has exactly one reason to change — swap MySQL for PostgreSQL and only the Repository layer notices; add a validation rule and only the Service layer notices; move from REST to GraphQL and only the Controller layer notices. This is the Single Responsibility Principle applied concretely, not as a slide in a textbook.
